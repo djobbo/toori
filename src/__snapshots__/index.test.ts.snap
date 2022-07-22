@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`create workflow should create a workflow 1`] = `
+"name: Build and Deploy Docs
+on:
+  - push:
+      branches:
+        - master
+jobs:
+  build-and-deploy:
+    concurrency: ci-\${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Install and Build 🔧
+        run: |-
+          pnpm ci
+          pnpm docs:build
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: gh-pages
+          folder: docs/guide/.vuepress/dist
+"
+`;
+
+exports[`create workflow should create a workflow 2 1`] = `
+"name: Publish dev
+on:
+  - workflow_dispatch
+  - push:
+      branches:
+        - master
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'djobbo'
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: https://registry.npmjs.org/
+          cache: pnpm
+      - name: Turbo cache
+        uses: actions/cache@v2
+        id: turbo-cache
+        with:
+          path: .turbo
+          key: turbo-\${{ github.job }}-\${{ github.ref_name }}-\${{ github.sha }}
+          restore-keys: turbo-\${{ github.job }}-\${{ github.ref_name }}-
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: \${{ secrets.NPM_PUBLISH_TOKEN }}
+"
+`;
