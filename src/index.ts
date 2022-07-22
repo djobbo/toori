@@ -38,7 +38,7 @@ class Step<Action extends ActionName | undefined = undefined> {
 class Job {
     name: string;
     options: JobOptions;
-    steps: Step<any>[] = [];
+    #steps: Step<any>[] = [];
 
     constructor(name: string, options: JobOptions = {}) {
         this.name = name
@@ -54,31 +54,31 @@ class Job {
             optionsOrStepCb(step);
         else
             stepCb?.(step);
-        this.steps.push(step);
+        this.#steps.push(step);
         return this;
     }
 
     use<Action extends ActionName>(name: string, action: Action, options: Partial<Action extends keyof ActionOptions ? { with: ActionOptions[Action], [x: string | number | symbol]: unknown; } : Record<string, unknown>> = {}): Job {
-        this.steps.push(new Step<Action>(name, { uses: action, ...options }));
+        this.#steps.push(new Step<Action>(name, { uses: action, ...options }));
         return this;
     }
 
     toJSON() {
-        return { ...kebabizeObject(this.options), steps: this.steps.map(step => step.toJSON()) };
+        return { ...kebabizeObject(this.options), steps: this.#steps.map(step => step.toJSON()) };
     }
 }
 
 class Workflow {
     name: string
-    jobs: Job[] = []
-    ons: OnOptions[] = []
+    #jobs: Job[] = []
+    #ons: OnOptions[] = []
 
     constructor(name: string) {
         this.name = name
     }
 
     on(...args: OnOptions[]): Workflow {
-        this.ons.push(...args)
+        this.#ons.push(...args)
         return this
     }
 
@@ -91,19 +91,19 @@ class Workflow {
             optionsOrJobCb(job);
         else
             jobCb?.(job)
-        this.jobs.push(job)
+        this.#jobs.push(job)
         return this
     }
 
     toJSON() {
         return {
             name: this.name,
-            on: this.ons.map((on) => {
+            on: this.#ons.map((on) => {
                 if (typeof on === 'string') return on;
                 const [event, options] = on
                 return !options ? event : { [event]: options }
             }),
-            jobs: Object.fromEntries(this.jobs.map(job => [job.name, job.toJSON()]))
+            jobs: Object.fromEntries(this.#jobs.map(job => [job.name, job.toJSON()]))
         }
     }
 

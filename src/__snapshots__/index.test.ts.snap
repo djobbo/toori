@@ -24,7 +24,7 @@ jobs:
           pnpm ci
           pnpm docs:build
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: docs/guide/.vuepress/dist
@@ -54,7 +54,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: pnpm
       - name: Turbo cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: turbo-cache
         with:
           path: .turbo

@@ -11,13 +11,13 @@ describe('create workflow', () => {
         job
           .use('Checkout 🛎️', 'actions/checkout@v3')
           .use('Setup pnpm', 'pnpm/action-setup@v2')
-          .use('Setup Node', 'actions/setup-node@v3', { with: { nodeVersion: '16' } })
+          .use('Setup Node', 'actions/setup-node@v3', { with: { nodeVersion: '16', } })
           .step('Install and Build 🔧', (step) => {
             step
               .run('pnpm ci')
               .run('pnpm docs:build')
           })
-          .use('Deploy 🚀', 'JamesIves/github-pages-deploy-action@v4.2.5', {
+          .use('Deploy 🚀', 'JamesIves/github-pages-deploy-action@v4', {
             with: {
               branch: 'gh-pages',
               folder: 'docs/guide/.vuepress/dist'
@@ -45,7 +45,7 @@ describe('create workflow', () => {
               cache: 'pnpm',
             }
           })
-          .use('Turbo cache', 'actions/cache@v2', {
+          .use('Turbo cache', 'actions/cache@v3', {
             id: 'turbo-cache',
             with: {
               path: '.turbo',
@@ -59,9 +59,7 @@ describe('create workflow', () => {
             }
           })
       })
-    console.log(workflow.toYAML())
 
     expect(workflow.toYAML()).toMatchSnapshot()
-
   })
 })
