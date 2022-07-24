@@ -3,7 +3,7 @@ import { createWorkflow } from '.'
 describe('create workflow', () => {
   it('should create a workflow', () => {
     const workflow = createWorkflow('Build and Deploy Docs')
-      .on(['push', { branches: ['master'] }])
+      .on('push', { branches: ['master'] })
       .job('build-and-deploy', {
         concurrency: 'ci-${{ github.ref }}',
         runsOn: 'ubuntu-latest'
@@ -30,7 +30,8 @@ describe('create workflow', () => {
 
   it('should create a workflow 2', () => {
     const workflow = createWorkflow('Publish dev')
-      .on('workflow_dispatch', ['push', { branches: ['master'] }])
+      .on('workflow_dispatch')
+      .on('push', { branches: ['master'] })
       .job('npm', {
         runsOn: 'ubuntu-latest',
         if: "github.repository_owner == 'djobbo'"

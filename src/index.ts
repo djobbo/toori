@@ -1,8 +1,7 @@
 import { stringify as toYAML } from 'yaml'
 import { ActionName, ActionOptions } from './actions'
+import { Event, EventName, EventOptions } from './eventTypes'
 import { kebabizeObject } from './helpers/kebabize'
-
-type OnOptions = [string, Record<string, any>?] | string
 
 type JobOptions = {}
 
@@ -71,14 +70,17 @@ class Job {
 class Workflow {
     name: string
     #jobs: Job[] = []
-    #ons: OnOptions[] = []
+    #events: Event[] = []
 
     constructor(name: string) {
         this.name = name
     }
 
-    on(...args: OnOptions[]): Workflow {
-        this.#ons.push(...args)
+    on<E extends EventName>(event: E, options?: EventOptions[E]): Workflow {
+        if (!options)
+            this.#events.push(event)
+        else
+            this.#events.push([event, options])
         return this
     }
 
@@ -98,7 +100,7 @@ class Workflow {
     toJSON() {
         return {
             name: this.name,
-            on: this.#ons.map((on) => {
+            on: this.#events.map((on) => {
                 if (typeof on === 'string') return on;
                 const [event, options] = on
                 return !options ? event : { [event]: options }
