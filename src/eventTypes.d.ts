@@ -36,7 +36,8 @@ type WorkflowDispatchInput = WorkflowDispatchInputBase & (
         type: 'environment'
     })
 
-export type EventOptions = {
+export type DefaultEventOptions = {
+    //Github events
     'branch_protection_rule': { type?: ('created' | 'updated' | 'deleted')[] },
     'check_run': { type?: ('created' | 'rerequested' | 'completed' | 'requested_action')[] },
     'check_suite': { type?: 'completed'[] },
@@ -183,7 +184,7 @@ export type EventOptions = {
     'repository_dispatch': {
         type?: string[]
     },
-    'schedule': { cron: string }[], // TODO: .onCron(cron: string)
+    'schedule': { cron: string }[],
     'status': never,
     'watch': { type?: ('started')[] },
     'workflow_call': {
@@ -201,6 +202,14 @@ export type EventOptions = {
     },
 }
 
+type CustomEventOptions = {
+    // Custom events
+    'cron': string
+}
+
+export type EventOptions = DefaultEventOptions & CustomEventOptions
+
 export type EventName = keyof EventOptions
+
 
 export type Event<Name extends EventName = EventName> = Name | [Name, EventOptions[Name]]

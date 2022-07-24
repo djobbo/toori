@@ -1,6 +1,6 @@
 import { stringify as toYAML } from 'yaml'
 import { ActionName, ActionOptions } from './actions'
-import { Event, EventName, EventOptions } from './eventTypes'
+import { Event, EventName, EventOptions, DefaultEventOptions } from './eventTypes'
 import { kebabizeObject } from './helpers/kebabize'
 
 type JobOptions = {}
@@ -76,12 +76,67 @@ class Workflow {
         this.name = name
     }
 
-    on<E extends EventName>(event: E, options?: EventOptions[E]): Workflow {
+    on(event: 'cron', options: string): Workflow
+    on<E extends keyof DefaultEventOptions>(event: E, options?: DefaultEventOptions[E]): Workflow
+    on<E extends EventName>(event: E, options: EventOptions[E] | undefined = undefined): Workflow {
+        if (event === 'cron') {
+            if (typeof options !== 'string') throw new Error('Cron event requires a string as options')
+            return this.on('schedule', [{ cron: options }])
+        }
+
         if (!options)
             this.#events.push(event)
-        else
-            this.#events.push([event, options])
+        else {
+            if (typeof options !== 'object') throw new Error(`Event [${event}] options must be an object`)
+            this.#events.push([event, kebabizeObject(options)])
+        }
         return this
+    }
+
+    #onBuilder<E extends keyof DefaultEventOptions>(event: E) {
+        return (options?: EventOptions[E]) => this.on(event, options)
+    }
+
+    // Github events
+    onBranchProtectionRule = this.#onBuilder('branch_protection_rule')
+    onCheckRun = this.#onBuilder('check_run')
+    onCheckSuite = this.#onBuilder('check_suite')
+    onCreate = this.#onBuilder('create')
+    onDelete = this.#onBuilder('delete')
+    onDeployment = this.#onBuilder('deployment')
+    onDeploymentStatus = this.#onBuilder('deployment_status')
+    onDiscussion = this.#onBuilder('discussion')
+    onDiscussionComment = this.#onBuilder('discussion_comment')
+    onFork = this.#onBuilder('fork')
+    onGollum = this.#onBuilder('gollum')
+    onIssueComment = this.#onBuilder('issue_comment')
+    onIssues = this.#onBuilder('issues')
+    onLabel = this.#onBuilder('label')
+    onMilestone = this.#onBuilder('milestone')
+    onPageBuild = this.#onBuilder('page_build')
+    onProject = this.#onBuilder('project')
+    onProjectCard = this.#onBuilder('project_card')
+    onProjectColumn = this.#onBuilder('project_column')
+    onPublic = this.#onBuilder('public')
+    onPullRequest = this.#onBuilder('pull_request')
+    onPullRequestComment = this.#onBuilder('pull_request_comment')
+    onPullRequestReview = this.#onBuilder('pull_request_review')
+    onPullRequestReviewComment = this.#onBuilder('pull_request_review_comment')
+    onPullRequestTarget = this.#onBuilder('pull_request_target')
+    onPush = this.#onBuilder('push')
+    onRegistryPackage = this.#onBuilder('registry_package')
+    onRelease = this.#onBuilder('release')
+    onRepositoryDispatch = this.#onBuilder('repository_dispatch')
+    onSchedule = this.#onBuilder('schedule')
+    onStatus = this.#onBuilder('status')
+    onWatch = this.#onBuilder('watch')
+    onWorkflowCall = this.#onBuilder('workflow_call')
+    onWorkflowDispatch = this.#onBuilder('workflow_dispatch')
+    onWorkflowRun = this.#onBuilder('workflow_run')
+
+    // Custom events
+    onCron(cron: string): Workflow {
+        return this.on('cron', cron)
     }
 
     job(name: string, jobCb?: (job: Job) => void): Workflow
